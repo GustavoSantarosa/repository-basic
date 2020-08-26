@@ -1,46 +1,33 @@
 <?php
-
-namespace GustavoSantarosa;
-
 	/**
-    * 
-    * Lib utilizada para consumir apis.
-    * 
-	* @package Api
+	* @package Api/
 	* @author Luis Gustavo Santarosa Pinto
     * @version 1.0.0
     * 
-	* 
 	*/
 
 class AccessApi {
 
     private $apiUrl;
-    private $userName;
+    private $apiKey;
     private $password;
     private $endPoint;
     private $build;
     private $callback;
 
-    /**
-    * Link da api, sem o endpoint
-    * userName = ou normalmente, passado uma key.
-    * password = caso tenha, se não tiver, é passado em branco
-    * @param string $apiUrl
-    * @param string $userName
-    * @param string $password
-    */
-    public function __construct(string $apiUrl, string $userName=null, $password=""){
+    public function __construct($apiUrl=null, $apikey=null, $password=null){
 
         /**
          * Url da Api
          */
-        $this->apiUrl = $apiUrl;
+        if($apiUrl){
+            $this->apiUrl = getenv('URLAPI')."{$apiUrl}/";
+        }
 
         /**
-         * UserName
+         * Chave da Api
          */
-        $this->userName = $userName;
+        $this->apiKey = $apikey;
 
         /**
          * Senha de acesso ao usuario da api
@@ -48,75 +35,140 @@ class AccessApi {
         $this->password = $password;
     }
 
-    /**
-    * Função que prepara os parametros para a conexao com a api.align-middle.
-    * Method = "PUT", "POST", "GET" ou "DELETE"
-    * Path = EndPoint.
-    * id = Caso queira passar um id, para fazer alteração ou deletar.
-    * Dados = Caso va fazer um update, ou insert
-    *
-    * @param string $method
-    * @param string $path
-    * @param integer $id
-    * @param array $dados
-    * @return object
-    */
-    public function send(string $method="POST", string $path, int $id=null, array $dados=null):object{
+     /**
+      * Função para Visualizar caso o ID seja nulo.
+      *
+      *Path = { contacts, tickets, conversations, agents, skills, roles, groups, etc}
+      *
+      * @param string $path
+      * @param integer $id
+      * @return object
+      */
+    public function request($metodo="POST", $route=null, $id=null, $data=null){
 
-        //Verifica se foi passado dados para ser enviado
-        if($dados){
-            $this->build = json_encode($dados);
+        if($id){
+            $this->endPoint = "{$route}/{$id}";
+        }
+        else{
+            $this->endPoint = $route;
         }
         
-        //Ve se vai ser passado id no endpoint
-        if($id){
-            $this->endPoint = "{$path}/{$id}";
-        }else{
-            $this->endPoint = $path;
-        }
+        if($metodo == "GET"){
+            $this->build = $data;
+            $this->get();
 
-        //Checa se o metodo passado esta certo
-        if($method == "POST" || $method=="GET" || $method=="PUT" || $method=="DELETE"){
-            $this->Connection();
-        }else{
-            $this->callback = "Informe apenas GET, POST, PUT ou DELETE no parametro Method!";
+        }else if($metodo == "POST"){
+            $this->build = json_encode($data);
+            $this->post();
+        }else if($metodo == "PUT"){
+            $this->build = json_encode($data);
+            $this->put();
+        }else if($metodo == "DELETE"){
+            $this->delete();
         }
 
         return $this;
     }
 
+     /**
+      * Função para apresentar o retorno da Api
+      *
+      * @return void
+      */
+    public function callback(){
+        return $this->callback ? $this->callback : "Retorno Nulo!";
+    }
+
+    public function linkapi(){
+        return "<pre>".$this->apiUrl . $this->endPoint . $this->build."</pre>";
+    }
+
     /**
-     * Função utilizada para efetuar a requisição com a api
+     * Função utilizada para efetuar a requisição via Put com a api
      *
      * @return void
      */
-    private function Method(){
-        $ch = curl_init($this->apiUrl . $this->endPoint);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
-            curl_setopt($ch, CURLOPT_HEADER, true);
-            if($this->$method=="PUT" || $this->method=="POST"){
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $this->build);
-            }
-            if($this->userName){
-                curl_setopt($ch, CURLOPT_USERPWD, "{$this->userName}:{$this->password}");
-            }
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    private function put(){
 
-            $server_output = curl_exec($ch);
-            $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-             
-            $this->callback = json_decode(substr($server_output, $header_size));
-            curl_close($ch);
+        
+        $ch = curl_init($this->apiUrl . $this->endPoint);
+
+        $header[] = "Content-type: application/json";
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_USERPWD, "$this->apiKey:$this->password");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $this->build);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $server_output = curl_exec($ch);
+        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+
+        $this->callback = substr($server_output, $header_size);
+        curl_close($ch);
     }
-     
+
     /**
-    * Função para apresentar o retorno da Api
-    *
-    * @return void
-    */
-    public function callback(){
-        return $this->callback;
+     * Função utilizada para efetuar a requisição via Delete com a api
+     *
+     * @return void
+     */
+    private function delete(){
+        $ch = curl_init($this->apiUrl . $this->endPoint);
+        $header[] = "Content-type: application/json";
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_USERPWD, "$this->apiKey:$this->password");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $server_output = curl_exec($ch);
+        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        
+        $this->callback = substr($server_output, $header_size);
+        curl_close($ch);
+    }
+
+    /**
+     * Função utilizada para efetuar a requisição via Get com a api
+     *
+     * @return void
+     */
+    private function get(){
+        
+        $ch = curl_init($this->apiUrl . $this->endPoint . $this->build);
+        
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_USERPWD, "$this->apiKey:$this->password");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+       
+        $server_output = curl_exec($ch);
+        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+         
+        $this->callback = substr($server_output, $header_size);
+        curl_close($ch);
+    }
+
+    /**
+     * Função utilizada para efetuar a requisição via Post com a api
+     *
+     * @return void
+     */
+    private function post(){
+        $ch = curl_init($this->apiUrl . $this->endPoint);
+        $header[] = "Content-type: application/json";
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_USERPWD, "$this->apiKey:$this->password");
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $this->build);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $server_output = curl_exec($ch);
+        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        
+        $this->callback = substr($server_output, $header_size);
+        curl_close($ch);
     }
 
 }
