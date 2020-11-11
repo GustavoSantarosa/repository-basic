@@ -6,7 +6,7 @@
     * 
 	*/
 
-    namespace AccessAPi;
+namespace GustavoSantarosa;
 class AccessApi {
 
     private $apiUrl;
@@ -22,7 +22,7 @@ class AccessApi {
          * Url da Api
          */
         if($apiUrl){
-            $this->apiUrl = getenv('URLAPI')."{$apiUrl}/";
+            $this->apiUrl = "{$apiUrl}/";
         }
 
         /**
