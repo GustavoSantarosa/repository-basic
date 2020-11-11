@@ -6,6 +6,7 @@
     * 
 	*/
 
+    namespace AccessAPi;
 class AccessApi {
 
     private $apiUrl;

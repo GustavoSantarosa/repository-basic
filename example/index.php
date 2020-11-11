@@ -1,5 +1,8 @@
 <?php
-require "../src/accessapi.php";
+
+require "vendor/autoload.php";
+
+use GustavoSantarosa\AccessApi;
 
 $AccessApi = new AccessApi("http://api.snapsolutions.com.br/api");
 
