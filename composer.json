@@ -1,5 +1,5 @@
 {
-    "name": "gustavosantarosa/access-api",
+    "name": "gustavosantarosa/repository-basic",
     "description": "Utilizado para consumir api",
     "keywords": [
         "GustavoSantarosa",
@@ -17,7 +17,7 @@
         }
     ],
     "require": {
-        "php":"^7.2"
+        "php":"^5.3"
     },
     "autoload":{
         "psr-4":{

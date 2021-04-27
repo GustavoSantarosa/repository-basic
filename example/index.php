@@ -2,28 +2,43 @@
 
 require "vendor/autoload.php";
 
-use GustavoSantarosa\AccessApi;
+use GustavoSantarosa\RepositoryBasic;
 
-$AccessApi = new AccessApi("http://api.snapsolutions.com.br/api");
+/**
+ * Caso haja um basic auth, informar o user como segundo e o password como terceiro parametro 
+ */
+$RepositoryApi = new RepositoryBasic("http://api.snapsolutions.com.br/api", "apikey", "password");
 
- $AccessApi->request("POST", "contatos", null, [
-    "cidade"    => "americana",
-    "uf"        => "SP",
-    "telefone"  => "34075942",
-    "email"     => "bolota_xd@hotmail.com",
-    "web"       => "gustavosantarosa.esy.es",
-    ]);
-echo $AccessApi->callback();
+/**
+ * Exemplo de um post, utilizando o modo dev para debugar no terceiro parametro.
+ * Contendo headers
+ */
+$RepositoryApi->request("POST", "contatos", true, [
+  "headers"   => [
+    "Content-Type"  => "application/json",
+    "Authorization" => "key"
+  ],
+  "cidade"    => "americana",
+  "uf"        => "SP",
+  "telefone"  => "34075942",
+  "email"     => "bolota_xd@hotmail.com",
+  "web"       => "gustavosantarosa.esy.es",
+]);
 
-  $AccessApi->request("PUT", "contatos", 11, [
-    "cidade"    => "piracicaba"
-    ]);  
-echo $AccessApi->callback();
+/**
+ * Exemplo de put, sem utilizar o modo dev para debugar
+ */
+$RepositoryApi->request("PUT", "contatos/10", false, [
+  "cidade"    => "piracicaba"
+]);  
 
-$AccessApi->request("DELETE", "contatos", 10);
-echo $AccessApi->callback();
+/**
+ * Exemplo de Delete
+ */
+$RepositoryApi->request("DELETE", "contatos/10", true);
 
-$AccessApi->request("GET", "contatos");
-echo $AccessApi->callback();
+/**
+ * Exemplo de get
+ */
+$RepositoryApi->request("GET", "contatos");
 
-echo $AccessApi->linkapi();
