@@ -1,7 +1,7 @@
 # Repository Basic
 Uma lib para acessar api com mais facilidade
 
-```Exemplo
+```php
     require "vendor/autoload.php";
 
     use GustavoSantarosa\RepositoryBasic;
